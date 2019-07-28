@@ -1,22 +1,27 @@
 #include <M5StickC.h>
 
-RTC_TimeTypeDef RTC_TimeStruct;
-RTC_DateTypeDef RTC_DateStruct;
+
+// config
+#define INACTIVITY_SLEEPMS 10000
+
+// global
 int menuCounter = 0;
 int ms10Counter = 0;
-#define MENU_LEN 3
+unsigned long lastButtonTime = 0;
 // ms macros
-#define MS100(msCounter) (msCounter%10==0)
-#define MS500(msCounter) (msCounter%50==0)
-#define MS1000(msCounter) (msCounter%100==0)
-#define MS2000(msCounter) (msCounter%200==0)
+#define MS100(msCounter) (msCounter % 10 == 0)
+#define MS500(msCounter) (msCounter % 50 == 0)
+#define MS1000(msCounter) (msCounter % 100 == 0)
+#define MS2000(msCounter) (msCounter % 200 == 0)
 // menu macros
-#define MENU_TIME(menuCounter) (menuCounter%MENU_LEN==0)
-#define MENU_POWER(menuCounter) (menuCounter%MENU_LEN==1)
-#define MENU_IMU(menuCounter) (menuCounter%MENU_LEN==2)
-
+#define MENU_LEN 3
+#define MENU_TIME(menuCounter) (menuCounter % MENU_LEN == 0)
+#define MENU_POWER(menuCounter) (menuCounter % MENU_LEN == 1)
+#define MENU_IMU(menuCounter) (menuCounter % MENU_LEN == 2)
 
 // RTC show
+RTC_TimeTypeDef RTC_TimeStruct;
+RTC_DateTypeDef RTC_DateStruct;
 void setupTime()
 {
     M5.Lcd.fillScreen(BLACK);
@@ -112,6 +117,43 @@ void loopIMU()
     M5.Lcd.printf("Temperature : %.2f C", ((float)tempImu) / 333.87 + 21.0);
 }
 
+void loopMenu()
+{
+    // buttons
+    if (digitalRead(M5_BUTTON_HOME) == LOW)
+    {
+        lastButtonTime = millis();
+        menuCounter++;
+        if (MENU_TIME(menuCounter))
+        {
+            setupTime();
+            loopTime();
+        }
+        else if (MENU_POWER(menuCounter))
+        {
+            setupPower();
+            loopPower();
+        }
+        else if (MENU_IMU(menuCounter))
+        {
+            setupIMU();
+            loopIMU();
+        }
+        delay(200); // debounce
+    }
+    else if (digitalRead(BUTTON_B_PIN) == LOW)
+    {
+        M5.Lcd.fillScreen(BLACK);
+        M5.Axp.DeepSleep(SLEEP_SEC(30));
+        delay(200); // debounce
+    }
+    //sleep
+    if ( millis() - lastButtonTime > INACTIVITY_SLEEPMS ) {
+        M5.Axp.DeepSleep(SLEEP_SEC(30));
+        //M5.Axp.DeepSleep(30);
+    }
+}
+
 void setTime()
 {
     // RTC_TimeTypeDef TimeStruct;
@@ -143,45 +185,20 @@ void setup()
 void loop()
 {
     // loop
-    if ( MENU_TIME(menuCounter) && MS1000(ms10Counter))
+    if (MENU_TIME(menuCounter) && MS1000(ms10Counter))
     {
         loopTime();
     }
-    else if ( MENU_POWER(menuCounter) && MS500(ms10Counter) )
+    else if (MENU_POWER(menuCounter) && MS500(ms10Counter))
     {
         loopPower();
     }
-    else if ( MENU_IMU(menuCounter) && MS100(ms10Counter))
+    else if (MENU_IMU(menuCounter) && MS100(ms10Counter))
     {
         loopIMU();
     }
     // handle menu
-    if (digitalRead(M5_BUTTON_HOME) == LOW)
-    {
-        menuCounter++;
-        if (menuCounter % MENU_LEN == 0)
-        {
-            setupTime();
-            loopTime();
-        }
-        else if (menuCounter % MENU_LEN == 1)
-        {
-            setupPower();
-            loopPower();
-        }
-        else if (menuCounter % MENU_LEN == 2)
-        {
-            setupIMU();
-            loopIMU();
-        }
-        delay(200); // debounce
-    }
-    else if (digitalRead(BUTTON_B_PIN) == LOW)
-    {
-        M5.Lcd.fillScreen(BLACK);
-        delay(200); // debounce
-    }
-
+    loopMenu();
     delay(10);
     ms10Counter++;
 }

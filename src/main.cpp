@@ -1,13 +1,16 @@
 #include <M5StickC.h>
-
+#include <WiFi.h>
 
 // config
 #define INACTIVITY_SLEEPMS 10000
+const char *ssid = "BABALAR";
+const char *password = "24939300";
 
 // global
 int menuCounter = 0;
 int ms10Counter = 0;
 unsigned long lastButtonTime = 0;
+RTC_DATA_ATTR int bootCount = 0;
 // ms macros
 #define MS100(msCounter) (msCounter % 10 == 0)
 #define MS500(msCounter) (msCounter % 50 == 0)
@@ -34,7 +37,7 @@ void loopTime()
     M5.Rtc.GetTime(&RTC_TimeStruct);
     M5.Rtc.GetData(&RTC_DateStruct);
     M5.Lcd.setCursor(0, 15);
-    M5.Lcd.printf("Data: %04d-%02d-%02d\n", RTC_DateStruct.Year, RTC_DateStruct.Month, RTC_DateStruct.Date);
+    M5.Lcd.printf("Date: %04d-%02d-%02d\n", RTC_DateStruct.Year, RTC_DateStruct.Month, RTC_DateStruct.Date);
     M5.Lcd.printf("Week: %d\n", RTC_DateStruct.WeekDay);
     M5.Lcd.printf("Time: %02d : %02d : %02d\n", RTC_TimeStruct.Hours, RTC_TimeStruct.Minutes, RTC_TimeStruct.Seconds);
 }
@@ -71,11 +74,6 @@ void loopPower()
     M5.Lcd.printf("Iin:%.3fmA\r\n", M5.Axp.GetIinData() * 0.625);
     M5.Lcd.printf("Vuin:%.3fmV\r\n", M5.Axp.GetVusbinData() * 1.7);
     M5.Lcd.printf("Iuin:%.3fmA\r\n", M5.Axp.GetIusbinData() * 0.375);
-    // // 0x01 long press(1s), 0x02 press
-    // if (M5.Axp.GetBtnPress() == 0x02)
-    // {
-    //     esp_restart();
-    // }
 }
 // IMU
 int16_t accX = 0;
@@ -148,9 +146,15 @@ void loopMenu()
         delay(200); // debounce
     }
     //sleep
-    if ( millis() - lastButtonTime > INACTIVITY_SLEEPMS ) {
-        M5.Axp.DeepSleep(SLEEP_SEC(30));
-        //M5.Axp.DeepSleep(30);
+    if (millis() - lastButtonTime > INACTIVITY_SLEEPMS)
+    {
+        lastButtonTime = millis();
+        // fill screen with black
+        M5.Lcd.fillScreen(BLACK);
+        //Configure GPIO37 as ext0 wake up source for LOW logic level
+        esp_sleep_enable_ext0_wakeup(GPIO_NUM_37, 0);
+        //Go to sleep now
+        M5.Axp.DeepSleep(0);
     }
 }
 
@@ -162,15 +166,16 @@ void setTime()
     // TimeStruct.Seconds = 00;
     // M5.Rtc.SetTime(&TimeStruct);
     // RTC_DateTypeDef DateStruct;
-    // DateStruct.WeekDay = 7;
+    // DateStruct.WeekDay = 1;
     // DateStruct.Month = 7;
-    // DateStruct.Date = 27;
+    // DateStruct.Date = 28;
     // DateStruct.Year = 2019;
     // M5.Rtc.SetData(&DateStruct);
 }
 
 void setup()
 {
+    ++bootCount;
     //pin
     pinMode(M5_BUTTON_HOME, INPUT_PULLUP);
     pinMode(BUTTON_B_PIN, INPUT_PULLUP);
@@ -180,6 +185,20 @@ void setup()
     setupTime();
     //power
     M5.Axp.EnableCoulombcounter();
+    //setTime();
+    // wifi
+    // WiFi.begin(ssid, password);             // Connect to the network
+    // M5.Lcd.printf("Connecting to ");
+    // M5.Lcd.printf(ssid);
+
+    // while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
+    //     delay(500);
+    //     M5.Lcd.printf(".");
+    // }
+    // M5.Lcd.println('\n');
+    // M5.Lcd.println("Connection established!");
+    // M5.Lcd.print("IP address:\t");
+    // M5.Lcd.println(WiFi.localIP());
 }
 
 void loop()

@@ -5,17 +5,17 @@
 // first time setup
 void setTime()
 {
-    RTC_TimeTypeDef TimeStruct;
-    TimeStruct.Hours   = 0;
-    TimeStruct.Minutes = 12;
-    TimeStruct.Seconds = 30;
-    M5.Rtc.SetTime(&TimeStruct);
-    RTC_DateTypeDef DateStruct;
-    DateStruct.WeekDay = 1;
-    DateStruct.Month = 11;
-    DateStruct.Date = 17;
-    DateStruct.Year = 2019;
-    M5.Rtc.SetData(&DateStruct);
+    // RTC_TimeTypeDef TimeStruct;
+    // TimeStruct.Hours   = 1;
+    // TimeStruct.Minutes = 04;
+    // TimeStruct.Seconds = 00;
+    // M5.Rtc.SetTime(&TimeStruct);
+    // RTC_DateTypeDef DateStruct;
+    // DateStruct.WeekDay = 1;
+    // DateStruct.Month = 11;
+    // DateStruct.Date = 17;
+    // DateStruct.Year = 2019;
+    // M5.Rtc.SetData(&DateStruct);
 }
 
 // RTC show

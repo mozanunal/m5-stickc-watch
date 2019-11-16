@@ -10,8 +10,8 @@
 
 // config
 #define INACTIVITY_SLEEPMS 20000
-const char *ssid = "BABALAR";
-const char *password = "24939300";
+const char *ssid = "xxxx";
+const char *password = "xxxx";
 
 // global
 int menuCounter = 0;
@@ -77,7 +77,7 @@ void setup()
     setupTime();
     //power
     M5.Axp.EnableCoulombcounter();
-    //setTime();
+    setTime();
     // wifi
     // WiFi.begin(ssid, password);             // Connect to the network
     // M5.Lcd.printf("Connecting to ");

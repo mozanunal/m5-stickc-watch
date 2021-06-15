@@ -17,7 +17,7 @@ const char *password = "xxxx";
 int menuCounter = 0;
 int ms10Counter = 0;
 int hue = 0;
-int brig = 50;
+int brig = 32;
 unsigned long lastButtonTime = 0;
 unsigned long lastPushTime = 0;
 unsigned long lastReleaseTime = 0;
@@ -35,15 +35,15 @@ void buttonClick()
 {
     if (menuCounter % 2 == 0)
     {
-        hue += 25;
+        hue += 32;
         cleanScreen();
-        M5.Lcd.printf("Hue Updated: %d", hue%251);
+        M5.Lcd.printf("Hue Updated: %d", hue%256);
     }
     else 
     {
-        brig += 50;
+        brig += 32;
         cleanScreen();
-        M5.Lcd.printf("Brig Updated: %d", brig%251);
+        M5.Lcd.printf("Brig Updated: %d", brig%256);
 
     }
 }
@@ -59,14 +59,14 @@ void IRAM_ATTR pushed() {
     lastPushTime = millis();
     attachInterrupt(M5_BUTTON_HOME, released, RISING);
     cleanScreen();
-    M5.Lcd.printf("pushed");
+    //M5.Lcd.printf("pushed");
 }
 
 void IRAM_ATTR released() {
     lastReleaseTime = millis();
     attachInterrupt(M5_BUTTON_HOME, pushed, FALLING);
     cleanScreen();
-    M5.Lcd.printf("released");
+    //M5.Lcd.printf("released");
     if ( lastReleaseTime - lastPushTime > 1000 )
     {
         buttonLongClick();
@@ -116,7 +116,7 @@ void loop()
     {
 
     }
-    fire(hue%251, brig%251);
+    fire(hue%256, brig%256);
     // handle menu
     ms10Counter++;
 }
